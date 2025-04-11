@@ -1,0 +1,85 @@
+body {
+    font-family: sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f2f2f2;
+  }
+  
+  h1 {
+    text-align: center;
+    color: #64b5f6;
+    margin: 30px 0 10px 0;
+  }
+  
+  .breadcrumb {
+    background-color: #0D47A1;
+    color: white;
+    padding: 15px 30px;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  
+  .breadcrumb a {
+    color: #ccc;
+    text-decoration: none;
+    margin: 0 5px;
+  }
+  
+  .breadcrumb a:hover {
+    color: white;
+  }
+  
+  .breadcrumb .current {
+    font-weight: bold;
+    color: white;
+  }
+  
+  .grid {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 30px;
+    gap: 20px;
+    justify-content: flex-start;
+  }
+  
+  .folder, .file {
+    background-color: #e3f2fd;
+    border-radius: 8px;
+    padding: 20px;
+    width: 200px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    text-decoration: none;
+    color: black;
+  }
+  
+  .folder img, .file img {
+    width: 50px;
+    margin-top: 10px;
+  }
+  
+  .search {
+    text-align: center;
+    margin-top: 20px;
+  }
+  
+  .search input[type="text"] {
+    padding: 10px;
+    width: 300px;
+    font-size: 16px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+  }
+  
+  .search button {
+    padding: 10px 15px;
+    font-size: 16px;
+    background-color: #0D47A1;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  

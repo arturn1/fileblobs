@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Arquivos</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <script src="/static/js/script.js" defer></script>
+</head>
+<body>
+
+  <h1>ARQUIVOS</h1>
+
+  <div class="breadcrumb">
+    <a href="/">arquivos</a>
+    {{ if .Prefix }}
+      {{ $parts := splitPrefix .Prefix }}
+      {{ range $i, $part := $parts }}
+        &nbsp;&gt;&nbsp;
+        {{ if eq (add $i) (len $parts) }}
+          <span class="current">{{ $part }}</span>
+        {{ else }}
+          <a href="/?prefix={{ joinPrefix $parts $i }}">{{ $part }}</a>
+        {{ end }}
+      {{ end }}
+    {{ end }}
+  </div>
+
+  {{ if eq .Prefix "" }}
+    <div class="search">
+      <form method="GET">
+        <input type="text" name="q" placeholder="Buscar..." value="{{.Query}}">
+        <button type="submit">🔍</button>
+      </form>
+    </div>
+  {{ end }}
+
+  {{ if .Folders }}
+    <div class="grid">
+      {{ range .Folders }}
+        <a class="folder" href="/?prefix={{ . }}/">
+          <div>{{ baseName . }}</div>
+          <img src="https://cdn-icons-png.flaticon.com/512/716/716784.png" alt="folder" />
+        </a>
+      {{ end }}
+    </div>
+  {{ end }}
+
+  {{ if .Files }}
+    <h2 style="margin-left: 30px;">Arquivos</h2>
+    <div class="grid">
+      {{ range .Files }}
+        <a class="file" href="/download?path={{ joinPath $.Prefix . }}">
+          <div>{{ baseName . }}</div>
+          <img src="https://cdn-icons-png.flaticon.com/512/337/337946.png" alt="file" />
+        </a>
+      {{ end }}
+    </div>
+  {{ end }}
+
+</body>
+</html>
