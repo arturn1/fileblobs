@@ -64,7 +64,7 @@
     <h2 style="margin-left: 30px;">Arquivos</h2>
     <div class="grid">
       {{ range .Files }}
-        <div class="file selectable" data-path="{{ joinPath $.Prefix . }}" onclick="toggleFileSelection(this)">
+        <div class="file selectable" data-path="{{ joinPath $.Prefix . }}" onclick="toggleFileSelection(this, event)">
           <input type="checkbox" class="file-checkbox" name="files" value="{{ joinPath $.Prefix . }}">
           <div class="file-link">
             <div class="file-name">{{ baseName . }}</div>

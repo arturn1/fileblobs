@@ -54,12 +54,19 @@ function handleFolderClick(el) {
   }
 }
 
-function toggleFileSelection(el) {
-  if (!isDownloadMode) return;
+function toggleFileSelection(el, event) {
   const checkbox = el.querySelector(".file-checkbox");
-  checkbox.checked = !checkbox.checked;
-  el.classList.toggle("selected", checkbox.checked);
+
+  if (isDownloadMode) {
+    event.preventDefault();
+    checkbox.checked = !checkbox.checked;
+    el.classList.toggle("selected", checkbox.checked);
+  } else {
+    const path = el.getAttribute("data-path");
+    window.location.href = "/download?path=" + encodeURIComponent(path);
+  }
 }
+
 
 function selectAll() {
   document.querySelectorAll(".file-checkbox").forEach(cb => {
