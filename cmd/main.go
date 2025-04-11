@@ -13,7 +13,6 @@ func main() {
 	http.HandleFunc("/", handlers.ListFilesHandler)
 	http.HandleFunc("/download", handlers.DownloadHandler)
 
-	// arquivos estáticos
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("web/static"))))
 
 	log.Println("Servidor rodando em http://localhost:8080")

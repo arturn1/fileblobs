@@ -4,12 +4,13 @@
   <meta charset="UTF-8">
   <title>Arquivos</title>
   <link rel="stylesheet" href="/static/css/style.css">
-  <script src="/static/js/script.js" defer></script>
+  <script src="/static/js/script.js"></script>
 </head>
 <body>
 
   <h1>ARQUIVOS</h1>
 
+  <!-- Breadcrumb -->
   <div class="breadcrumb">
     <a href="/">arquivos</a>
     {{ if .Prefix }}
@@ -25,17 +26,16 @@
     {{ end }}
   </div>
 
-  {{ if eq .Prefix "" }}
-    <div class="search">
-      <form method="GET">
-        <input type="text" name="q" placeholder="Buscar..." value="{{.Query}}">
-        <button type="submit">🔍</button>
-      </form>
-    </div>
-  {{ end }}
+  <!-- Campo de busca -->
+  <div class="search">
+    <form method="GET" onsubmit="return false;">
+      <input type="text" id="searchInput" placeholder="Buscar..." value="{{.Query}}">
+    </form>
+  </div>
 
+  <!-- Folders -->
   {{ if .Folders }}
-    <div class="grid">
+    <div class="grid" id="foldersGrid">
       {{ range .Folders }}
         <a class="folder" href="/?prefix={{ . }}/">
           <div>{{ baseName . }}</div>
@@ -45,9 +45,10 @@
     </div>
   {{ end }}
 
+  <!-- Files -->
   {{ if .Files }}
     <h2 style="margin-left: 30px;">Arquivos</h2>
-    <div class="grid">
+    <div class="grid" id="filesGrid">
       {{ range .Files }}
         <a class="file" href="/download?path={{ joinPath $.Prefix . }}">
           <div>{{ baseName . }}</div>
