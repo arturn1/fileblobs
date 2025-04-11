@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"path/filepath"
 	"strings"
 )
 
@@ -39,6 +40,27 @@ var tmpl = template.Must(template.New("index.html").Funcs(template.FuncMap{
 	},
 	"joinPrefix": func(parts []string, index int) string {
 		return strings.Join(parts[:index+1], "/")
+	},
+	"fileIcon": func(filename string) string {
+		ext := strings.ToLower(filepath.Ext(filename))
+		switch ext {
+		case ".jpg", ".jpeg":
+			return "/static/icons/jpg.png"
+		case ".png":
+			return "/static/icons/png.png"
+		case ".pdf":
+			return "/static/icons/pdf.png"
+		case ".doc", ".docx":
+			return "/static/icons/docx.png"
+		case ".xls", ".xlsx":
+			return "/static/icons/xls.png"
+		case ".zip", ".rar":
+			return "/static/icons/zip.png"
+		case ".txt":
+			return "/static/icons/txt.png"
+		default:
+			return "/static/icons/file.png"
+		}
 	},
 }).ParseFiles("web/templates/index.html"))
 

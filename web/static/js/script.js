@@ -12,20 +12,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
   }
-
-  document.addEventListener("click", function (e) {
-    if (!isDownloadMode) return;
-    const fileCard = e.target.closest(".file");
-    const isLink = e.target.closest("a");
-    if (fileCard && !isLink) {
-      e.preventDefault();
-      const checkbox = fileCard.querySelector(".file-checkbox");
-      if (checkbox) {
-        checkbox.checked = !checkbox.checked;
-        fileCard.classList.toggle("selected", checkbox.checked);
-      }
-    }
-  });
 });
 
 function showDownloadConfirm() {
@@ -36,7 +22,6 @@ function showDownloadConfirm() {
 
   document.querySelectorAll(".file").forEach(el => {
     el.classList.add("show-checkboxes");
-    el.querySelector(".file-link")?.removeAttribute("href");
   });
 
   document.querySelectorAll(".folder").forEach(folder => {
@@ -53,8 +38,6 @@ function cancelDownload() {
   document.querySelectorAll(".file").forEach(el => {
     el.classList.remove("show-checkboxes", "selected");
     el.querySelector(".file-checkbox").checked = false;
-    const path = el.getAttribute("data-path");
-    el.querySelector(".file-link")?.setAttribute("href", "/download?path=" + path);
   });
 
   document.querySelectorAll(".folder").forEach(folder => {
@@ -69,6 +52,20 @@ function handleFolderClick(el) {
   } else {
     window.location.href = "/download-folder?path=" + path;
   }
+}
+
+function toggleFileSelection(el) {
+  if (!isDownloadMode) return;
+  const checkbox = el.querySelector(".file-checkbox");
+  checkbox.checked = !checkbox.checked;
+  el.classList.toggle("selected", checkbox.checked);
+}
+
+function selectAll() {
+  document.querySelectorAll(".file-checkbox").forEach(cb => {
+    cb.checked = true;
+    cb.closest(".file").classList.add("selected");
+  });
 }
 
 function downloadSelected() {

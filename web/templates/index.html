@@ -7,6 +7,7 @@
   <script src="/static/js/script.js" defer></script>
 </head>
 <body>
+
   <h1>ARQUIVOS</h1>
 
   <div class="breadcrumb">
@@ -32,6 +33,7 @@
       </div>
       <div id="confirmButtons" style="display: none;">
         <button class="clean-btn cancel" onclick="cancelDownload()">Cancelar</button>
+        <button class="clean-btn" onclick="selectAll()">Selecionar Todos</button>
         <button class="clean-btn confirm" onclick="downloadSelected()">Baixar</button>
       </div>
     {{ end }}
@@ -58,15 +60,16 @@
     <h2 style="margin-left: 30px;">Arquivos</h2>
     <div class="grid">
       {{ range .Files }}
-        <div class="file selectable" data-path="{{ joinPath $.Prefix . }}">
-          <input type="checkbox" class="file-checkbox" name="paths" value="{{ joinPath $.Prefix . }}">
-          <a class="file-link" href="/download?path={{ joinPath $.Prefix . }}">
-            <div>{{ baseName . }}</div>
-            <img src="https://cdn-icons-png.flaticon.com/512/337/337946.png" alt="file" />
-          </a>
+        <div class="file selectable" data-path="{{ joinPath $.Prefix . }}" onclick="toggleFileSelection(this)">
+          <input type="checkbox" class="file-checkbox" name="files" value="{{ joinPath $.Prefix . }}">
+          <div class="file-link">
+            <div class="file-name">{{ baseName . }}</div>
+            <img src="{{ fileIcon . }}" alt="file" />
+          </div>
         </div>
       {{ end }}
     </div>
   {{ end }}
+
 </body>
 </html>
