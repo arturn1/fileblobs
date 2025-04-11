@@ -15,6 +15,7 @@ func main() {
 
 	http.HandleFunc("/download-folder", handlers.DownloadFolderHandler)
 	http.HandleFunc("/download-multiple", handlers.DownloadMultipleHandler)
+	http.HandleFunc("/upload", handlers.UploadHandler)
 
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("web/static"))))
 
