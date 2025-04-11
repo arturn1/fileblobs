@@ -20,6 +20,8 @@ func DownloadMultipleHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	prefix := r.FormValue("prefix")
+
 	w.Header().Set("Content-Type", "application/zip")
 	w.Header().Set("Content-Disposition", "attachment; filename=arquivos.zip")
 
@@ -29,10 +31,15 @@ func DownloadMultipleHandler(w http.ResponseWriter, r *http.Request) {
 	for _, path := range files {
 		data, err := azure.DownloadBlob(path)
 		if err != nil {
-			continue // ignora erros individuais
+			continue
 		}
 
-		fw, err := zipWriter.Create(path)
+		relativePath := path
+		if prefix != "" && len(path) > len(prefix) {
+			relativePath = path[len(prefix):]
+		}
+
+		fw, err := zipWriter.Create(relativePath)
 		if err != nil {
 			continue
 		}
