@@ -4,59 +4,69 @@
   <meta charset="UTF-8">
   <title>Arquivos</title>
   <link rel="stylesheet" href="/static/css/style.css">
-  <script src="/static/js/script.js"></script>
+  <script src="/static/js/script.js" defer></script>
 </head>
 <body>
-
   <h1>ARQUIVOS</h1>
 
-  <!-- Breadcrumb -->
   <div class="breadcrumb">
-    <a href="/">arquivos</a>
-    {{ if .Prefix }}
-      {{ $parts := splitPrefix .Prefix }}
-      {{ range $i, $part := $parts }}
-        &nbsp;&gt;&nbsp;
-        {{ if eq (add $i) (len $parts) }}
-          <span class="current">{{ $part }}</span>
-        {{ else }}
-          <a href="/?prefix={{ joinPrefix $parts $i }}">{{ $part }}</a>
+    <div style="flex-grow: 1;">
+      <a href="/">Fileblobs</a>
+      {{ if .Prefix }}
+        {{ $parts := splitPrefix .Prefix }}
+        {{ range $i, $part := $parts }}
+          &nbsp;&gt;&nbsp;
+          {{ if eq (add $i) (len $parts) }}
+            <span class="current">{{ $part }}</span>
+          {{ else }}
+            <a href="/?prefix={{ joinPrefix $parts $i }}">{{ $part }}</a>
+          {{ end }}
         {{ end }}
       {{ end }}
+    </div>
+
+    {{ if .Prefix }}
+      <div id="actionButtons">
+        <button class="clean-btn">Upload</button>
+        <button class="clean-btn" onclick="showDownloadConfirm()">Download</button>
+      </div>
+      <div id="confirmButtons" style="display: none;">
+        <button class="clean-btn cancel" onclick="cancelDownload()">Cancelar</button>
+        <button class="clean-btn confirm" onclick="downloadSelected()">Baixar</button>
+      </div>
     {{ end }}
   </div>
 
-  <!-- Campo de busca -->
   <div class="search">
     <form method="GET" onsubmit="return false;">
       <input type="text" id="searchInput" placeholder="Buscar..." value="{{.Query}}">
     </form>
   </div>
 
-  <!-- Folders -->
   {{ if .Folders }}
     <div class="grid" id="foldersGrid">
       {{ range .Folders }}
-        <a class="folder" href="/?prefix={{ . }}/">
+        <div class="folder" data-path="{{ . }}" onclick="handleFolderClick(this)">
           <div>{{ baseName . }}</div>
           <img src="https://cdn-icons-png.flaticon.com/512/716/716784.png" alt="folder" />
-        </a>
+        </div>
       {{ end }}
     </div>
   {{ end }}
 
-  <!-- Files -->
   {{ if .Files }}
     <h2 style="margin-left: 30px;">Arquivos</h2>
-    <div class="grid" id="filesGrid">
+    <div class="grid">
       {{ range .Files }}
-        <a class="file" href="/download?path={{ joinPath $.Prefix . }}">
-          <div>{{ baseName . }}</div>
-          <img src="https://cdn-icons-png.flaticon.com/512/337/337946.png" alt="file" />
-        </a>
+        <div class="file selectable" data-path="{{ joinPath $.Prefix . }}">
+          <input type="checkbox" class="file-checkbox" name="paths" value="{{ joinPath $.Prefix . }}">
+          <a class="file-link" href="/download?path={{ joinPath $.Prefix . }}">
+            <div>{{ baseName . }}</div>
+            <img src="https://cdn-icons-png.flaticon.com/512/337/337946.png" alt="file" />
+          </a>
+        </div>
       {{ end }}
     </div>
   {{ end }}
-
 </body>
 </html>

@@ -9,10 +9,11 @@ import (
 )
 
 type PageData struct {
-	Folders []string
-	Files   []string
-	Prefix  string
-	Query   string
+	Folders      []string
+	Files        []string
+	Prefix       string
+	Query        string
+	DownloadMode bool
 }
 
 var tmpl = template.Must(template.New("index.html").Funcs(template.FuncMap{
@@ -48,6 +49,7 @@ func ListFilesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	query := r.URL.Query().Get("q")
+	downloadMode := r.URL.Query().Get("downloadMode") == "1"
 
 	folders, files, err := azure.ListFoldersAndFiles(prefix)
 	if err != nil {
@@ -62,10 +64,11 @@ func ListFilesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := PageData{
-		Folders: folders,
-		Files:   files,
-		Prefix:  prefix,
-		Query:   query,
+		Folders:      folders,
+		Files:        files,
+		Prefix:       prefix,
+		Query:        query,
+		DownloadMode: downloadMode,
 	}
 
 	tmpl.Execute(w, data)
