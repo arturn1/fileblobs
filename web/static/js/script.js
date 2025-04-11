@@ -96,7 +96,6 @@ function downloadSelected() {
     form.appendChild(input);
   });
 
-  // Adiciona o prefixo atual (pasta base)
   const urlParams = new URLSearchParams(window.location.search);
   const prefix = urlParams.get("prefix") || "";
   const prefixInput = document.createElement("input");

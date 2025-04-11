@@ -4,7 +4,6 @@ go 1.24.1
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.6.0
-	github.com/streadway/amqp v1.1.0
 )
 
 require (
