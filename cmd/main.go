@@ -10,15 +10,23 @@ import (
 func main() {
 	config.LoadEnv()
 
-	http.HandleFunc("/", handlers.ListFilesHandler)
-	http.HandleFunc("/download", handlers.DownloadHandler)
+	// Authentication routes
+	http.HandleFunc("/login", handlers.LoginHandler)
+	http.HandleFunc("/logout", handlers.LogoutHandler)
+	http.HandleFunc("/storage-accounts", handlers.StorageAccountsHandler)
+	http.HandleFunc("/add-account", handlers.AddAccountHandler)
+	http.HandleFunc("/select-account", handlers.SelectAccountHandler)
 
-	http.HandleFunc("/download-folder", handlers.DownloadFolderHandler)
-	http.HandleFunc("/download-multiple", handlers.DownloadMultipleHandler)
-	http.HandleFunc("/upload", handlers.UploadHandler)
+	// File handling routes - protected by auth middleware
+	http.HandleFunc("/", handlers.AuthMiddleware(handlers.ListFilesHandler))
+	http.HandleFunc("/download", handlers.AuthMiddleware(handlers.DownloadHandler))
+	http.HandleFunc("/download-folder", handlers.AuthMiddleware(handlers.DownloadFolderHandler))
+	http.HandleFunc("/download-multiple", handlers.AuthMiddleware(handlers.DownloadMultipleHandler))
+	http.HandleFunc("/upload", handlers.AuthMiddleware(handlers.UploadHandler))
 
+	// Static files
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("web/static"))))
 
-	log.Println("Servidor rodando em http://localhost:8080")
-	http.ListenAndServe(":8080", nil)
+	log.Println("Servidor rodando em http://localhost")
+	http.ListenAndServe(":80", nil)
 }

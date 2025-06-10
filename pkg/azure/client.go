@@ -3,13 +3,43 @@ package azure
 import (
 	"fmt"
 	"os"
+	"sync"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/container"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/service"
 )
 
+var (
+	clientMutex  sync.RWMutex
+	clientCache  *container.Client
+	clientCached bool
+)
+
+// ResetClient clears the client cache to force creating a new client with updated credentials
+func ResetClient() {
+	clientMutex.Lock()
+	defer clientMutex.Unlock()
+	clientCache = nil
+	clientCached = false
+}
+
 func GetAzureBlobClient() (*container.Client, error) {
+	clientMutex.RLock()
+	if clientCached && clientCache != nil {
+		defer clientMutex.RUnlock()
+		return clientCache, nil
+	}
+	clientMutex.RUnlock()
+
+	clientMutex.Lock()
+	defer clientMutex.Unlock()
+
+	// Check again after acquiring the write lock
+	if clientCached && clientCache != nil {
+		return clientCache, nil
+	}
+
 	containerName := os.Getenv("AZURE_STORAGE_CONTAINER")
 	if containerName == "" {
 		return nil, fmt.Errorf("variável de ambiente AZURE_STORAGE_CONTAINER não definida")
@@ -34,5 +64,10 @@ func GetAzureBlobClient() (*container.Client, error) {
 	}
 
 	containerClient := serviceClient.NewContainerClient(containerName)
+
+	// Cache the client
+	clientCache = containerClient
+	clientCached = true
+
 	return containerClient, nil
 }

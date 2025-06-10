@@ -11,7 +11,6 @@
 <body>
 
   <h1>ARQUIVOS</h1>
-
   <div class="breadcrumb">
     <div style="flex-grow: 1;">
       <a href="/">Fileblobs</a>
@@ -28,19 +27,24 @@
       {{ end }}
     </div>
 
-    {{ if .Prefix }}
-      <div id="actionButtons">
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
-          Fazer Upload
-        </button>
-        <button class="clean-btn" onclick="showDownloadConfirm()">Download</button>
-      </div>
-      <div id="confirmButtons" style="display: none;">
-        <button class="clean-btn cancel" onclick="cancelDownload()">Cancelar</button>
-        <button class="clean-btn" onclick="selectAll()">Selecionar Todos</button>
-        <button class="clean-btn confirm" onclick="downloadSelected()">Baixar</button>
-      </div>
-    {{ end }}
+    <div class="d-flex align-items-center">
+      <a href="/storage-accounts" class="btn btn-outline-primary btn-sm me-2">Mudar Conta</a>
+      <a href="/logout" class="btn btn-outline-danger btn-sm me-2">Sair</a>
+      
+      {{ if .Prefix }}
+        <div id="actionButtons">
+          <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
+            Fazer Upload
+          </button>
+          <button class="clean-btn" onclick="showDownloadConfirm()">Download</button>
+        </div>
+        <div id="confirmButtons" style="display: none;">
+          <button class="clean-btn cancel" onclick="cancelDownload()">Cancelar</button>
+          <button class="clean-btn" onclick="selectAll()">Selecionar Todos</button>
+          <button class="clean-btn confirm" onclick="downloadSelected()">Baixar</button>
+        </div>
+      {{ end }}
+    </div>
   </div>
 
   <div class="search">
