@@ -39,15 +39,12 @@ func GetAzureBlobClient() (*container.Client, error) {
 	if clientCached && clientCache != nil {
 		return clientCache, nil
 	}
-
 	containerName := os.Getenv("AZURE_STORAGE_CONTAINER")
-	if containerName == "" {
-		return nil, fmt.Errorf("variável de ambiente AZURE_STORAGE_CONTAINER não definida")
-	}
-
 	account := os.Getenv("AZURE_STORAGE_ACCOUNT_NAME")
 	key := os.Getenv("AZURE_STORAGE_ACCOUNT_KEY")
 
+	// Se alguma das variáveis estiver vazia, apenas retorna um cliente nulo
+	// Isso permite a navegação na UI mesmo sem configuração completa
 	if containerName == "" || account == "" || key == "" {
 		return nil, fmt.Errorf("variáveis de ambiente ausentes")
 	}

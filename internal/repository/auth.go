@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"time"
 )
 
 type User struct {
@@ -129,39 +130,128 @@ func ValidateUser(username, password string) bool {
 
 func GetStorageAccounts() []StorageAccount {
 	authDataOnce.Do(initAuthData)
+
+	var persistentAccounts []StorageAccount
+	var tempAccounts []StorageAccount
+
+	// Get accounts from persistent storage
 	authMutex.RLock()
-	defer authMutex.RUnlock()
+	persistentAccounts = make([]StorageAccount, len(authData.StorageAccounts))
+	copy(persistentAccounts, authData.StorageAccounts)
+	authMutex.RUnlock()
 
-	accounts := make([]StorageAccount, len(authData.StorageAccounts))
-	copy(accounts, authData.StorageAccounts)
-	return accounts
-}
+	// Get accounts from temporary storage
+	tempMutex.RLock()
+	tempAccounts = make([]StorageAccount, len(temporaryAccounts))
+	copy(tempAccounts, temporaryAccounts)
+	tempMutex.RUnlock()
 
-func AddStorageAccount(account StorageAccount) error {
-	authDataOnce.Do(initAuthData)
-	authMutex.Lock()
-	defer authMutex.Unlock()
+	// Combine accounts, avoiding duplicates
+	totalSize := len(persistentAccounts) + len(tempAccounts)
+	combinedAccounts := make([]StorageAccount, 0, totalSize)
 
-	// Check if account with same name already exists
-	for _, acc := range authData.StorageAccounts {
-		if acc.Name == account.Name {
-			return fmt.Errorf("uma conta com esse nome já existe")
+	// Add accounts from persistent storage
+	combinedAccounts = append(combinedAccounts, persistentAccounts...)
+
+	// Add accounts from temporary array, avoiding duplicates
+	for _, tempAccount := range tempAccounts {
+		isDuplicate := false
+		for _, persistentAccount := range persistentAccounts {
+			if tempAccount.Name == persistentAccount.Name {
+				isDuplicate = true
+				break
+			}
+		}
+		if !isDuplicate {
+			combinedAccounts = append(combinedAccounts, tempAccount)
 		}
 	}
 
-	authData.StorageAccounts = append(authData.StorageAccounts, account)
-	return saveAuthData()
+	return combinedAccounts
+}
+
+// In-memory storage for development
+var (
+	temporaryAccounts []StorageAccount
+	tempMutex         sync.RWMutex
+)
+
+func AddStorageAccount(account StorageAccount) error {
+	authDataOnce.Do(initAuthData)
+
+	// Use separate mutex for temporary accounts to avoid deadlocks
+	tempMutex.Lock()
+	defer tempMutex.Unlock()
+
+	// Generate a name if empty
+	if account.Name == "" {
+		account.Name = fmt.Sprintf("Conta %d", time.Now().Unix())
+	}
+
+	// Add to temporary array only
+	temporaryAccounts = append(temporaryAccounts, account)
+
+	fmt.Printf("Conta adicionada ao array temporário: %s\n", account.Name)
+	return nil
 }
 
 func GetStorageAccountByName(name string) (StorageAccount, bool) {
 	authDataOnce.Do(initAuthData)
-	authMutex.RLock()
-	defer authMutex.RUnlock()
 
+	// First look in persistent storage
+	authMutex.RLock()
 	for _, account := range authData.StorageAccounts {
+		if account.Name == name {
+			authMutex.RUnlock()
+			return account, true
+		}
+	}
+	authMutex.RUnlock()
+
+	// Then look in temporary storage
+	tempMutex.RLock()
+	defer tempMutex.RUnlock()
+	for _, account := range temporaryAccounts {
 		if account.Name == name {
 			return account, true
 		}
 	}
+
 	return StorageAccount{}, false
+}
+
+// UpdateStorageAccount updates an existing storage account
+func UpdateStorageAccount(originalName string, updatedAccount StorageAccount) error {
+	authDataOnce.Do(initAuthData)
+
+	// First check if account is in temporary array
+	tempMutex.Lock()
+	for i, account := range temporaryAccounts {
+		if account.Name == originalName {
+			// Update in temporary array
+			temporaryAccounts[i] = updatedAccount
+			tempMutex.Unlock()
+			return nil
+		}
+	}
+	tempMutex.Unlock()
+
+	// Then check if account is in persistent storage
+	authMutex.Lock()
+	defer authMutex.Unlock()
+
+	// Don't allow updating the default account
+	if originalName == "Conta Padrão" {
+		return fmt.Errorf("não é permitido editar a conta padrão")
+	}
+
+	for i, account := range authData.StorageAccounts {
+		if account.Name == originalName {
+			// Update in persistent storage
+			authData.StorageAccounts[i] = updatedAccount
+			return nil
+		}
+	}
+
+	return fmt.Errorf("conta não encontrada")
 }
