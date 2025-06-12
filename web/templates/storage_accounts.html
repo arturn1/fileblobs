@@ -11,28 +11,54 @@
   <div class="container">
     <div class="row justify-content-center mt-5">
       <div class="col-md-8">
-        <div class="card shadow">
-          <div class="card-header bg-primary text-white">
-            <h3 class="text-center mb-0">Selecionar Conta de Armazenamento</h3>
+        <div class="card shadow">          <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+              <h3 class="mb-0">Selecionar Conta de Armazenamento</h3>
+              <div>
+                <small class="text-light">
+                  {{if .UserName}}
+                    Usuário: {{.UserName}}
+                    {{if .IsAdmin}}
+                      <span class="badge bg-warning text-dark">Administrador</span>
+                    {{else}}
+                      <span class="badge bg-info text-dark">Consultor</span>
+                    {{end}}
+                  {{end}}
+                </small>
+              </div>
+            </div>
           </div>
           <div class="card-body">
-            <p class="text-center">Escolha a conta de armazenamento Azure para acessar os arquivos:</p>
-            
-            <div class="list-group mt-4">
+            <p class="text-center">Escolha a conta de armazenamento Azure para acessar os arquivos:</p>            <div class="list-group mt-4">
               {{range .Accounts}}
-              <a href="/select-account?name={{.Name}}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+              <div class="list-group-item d-flex justify-content-between align-items-center">
                 <div>
-                  <h5 class="mb-1">{{.Name}}</h5>
+                  <h5 class="mb-1">
+                    {{.Name}}
+                    {{if eq .Name "Conta Padrão"}}
+                    <span class="badge bg-secondary">Padrão</span>
+                    {{end}}
+                  </h5>
                   <p class="mb-1 text-muted">{{.Description}}</p>
+                  <small>Container: {{.ContainerName}}</small>
                 </div>
-                <span class="badge bg-primary rounded-pill">Selecionar</span>
-              </a>
+                <div class="btn-group">
+                  <a href="/select-account?name={{.Name}}" class="btn btn-primary btn-sm">Selecionar</a>
+                  {{if ne .Name "Conta Padrão"}}
+                    {{if $.IsAdmin}}
+                    <a href="/edit-account?name={{.Name}}" class="btn btn-outline-secondary btn-sm">Editar</a>
+                    {{end}}
+                  {{end}}
+                </div>
+              </div>
               {{end}}
             </div>
 
             <div class="d-flex justify-content-between mt-4">
               <a href="/logout" class="btn btn-outline-danger">Sair</a>
+              {{if .IsAdmin}}
               <a href="/add-account" class="btn btn-outline-primary">Adicionar Nova Conta</a>
+              {{end}}
             </div>
           </div>
         </div>

@@ -12,6 +12,7 @@ import (
 type User struct {
 	Username string `json:"username"`
 	Password string `json:"password"` // In a real application, store hashed passwords
+	IsAdmin  bool   `json:"isAdmin"`  // Indica se o usuário é administrador
 }
 
 type StorageAccount struct {
@@ -60,6 +61,7 @@ func initAuthData() {
 				{
 					Username: "admin",
 					Password: "admin", // In a real app, use hashed passwords
+					IsAdmin:  true,
 				},
 			},
 			StorageAccounts: []StorageAccount{
@@ -123,6 +125,26 @@ func ValidateUser(username, password string) bool {
 
 	for _, user := range authData.Users {
 		if user.Username == username && user.Password == password {
+			return true
+		}
+	}
+	return false
+}
+
+// IsUserAdmin verifica se um usuário é administrador
+func IsUserAdmin(username string) bool {
+	authDataOnce.Do(initAuthData)
+	authMutex.RLock()
+	defer authMutex.RUnlock()
+
+	// Se o username é oidc_user, consideramos que a verificação
+	// já foi feita no middleware e depende do header X-User-Is-Admin
+	if username == "oidc_user" {
+		return true // A verificação real é feita no middleware via token OIDC
+	}
+
+	for _, user := range authData.Users {
+		if user.Username == username && user.IsAdmin {
 			return true
 		}
 	}
