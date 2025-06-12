@@ -1,86 +1,105 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-<head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login com IdentityServer</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      background-color: #f5f5f5;
-    }
-    .login-container {
-      background-color: white;
-      padding: 30px;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      width: 100%;
-      max-width: 500px;
-      text-align: center;
-    }
-    .login-message {
-      margin-bottom: 20px;
-      padding: 15px;
-      border-radius: 4px;
-      background-color: #f8f9fa;
-    }
-    .error-message {
-      color: #721c24;
-      background-color: #f8d7da;
-      border: 1px solid #f5c6cb;
-    }
-    h1 {
-      color: #333;
-      margin-bottom: 25px;
-    }
-  </style>
-</head>
-<body>
-  <div class="login-container">
-    <h1>Fileblobs - Login</h1>
-    <div id="loginResult" class="login-message">Iniciando autenticação...</div>
-  </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login com IdentityServer</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background-color: #f5f5f5;
+      }
+      .login-container {
+        background-color: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 500px;
+        text-align: center;
+      }
+      .login-message {
+        margin-bottom: 20px;
+        padding: 15px;
+        border-radius: 4px;
+        background-color: #f8f9fa;
+      }
+      .error-message {
+        color: #721c24;
+        background-color: #f8d7da;
+        border: 1px solid #f5c6cb;
+      }
+      h1 {
+        color: #333;
+        margin-bottom: 25px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="login-container">
+      <h1>Fileblobs - Login</h1>
+      <div id="loginResult" class="login-message">
+        Iniciando autenticação...
+      </div>
+    </div>
 
-  <script src="/js/oidc-client.min.js"></script>
-  <script src="/js/main.js"></script>  <script>
-    // Função para mostrar mensagens de erro em formato amigável
-    function showError(message) {
-      const loginResult = document.getElementById('loginResult');
-      loginResult.innerHTML = message;
-      loginResult.classList.add('error-message');
-    }
+    <script src="/js/oidc-client.min.js"></script>
+    <script src="/js/main.js"></script>
+    <script>
+      // Função para mostrar mensagens de erro em formato amigável
+      function showError(message) {
+        const loginResult = document.getElementById("loginResult");
+        loginResult.innerHTML = message;
+        loginResult.classList.add("error-message");
+      }
       // Função para tratar erros de autenticação
-    function handleAuthError(err) {
-      console.error('Erro de autenticação:', err);
-      
-      // Verificar se é um erro de permissão
-      if (err.error === 'access_denied' || (err.message && err.message.includes('access_denied'))) {
-        showError('Acesso negado. Você não tem permissões para acessar este aplicativo. É necessário ter a role "Administrator" ou "Consultant".');
-      } else {
-        showError('Erro de autenticação: ' + (err.error_description || err.message || 'Falha na autenticação'));
+      function handleAuthError(err) {
+        console.error("Erro de autenticação:", err);
+
+        // Verificar se é um erro de permissão
+        if (
+          err.error === "access_denied" ||
+          (err.message && err.message.includes("access_denied"))
+        ) {
+          showError(
+            'Acesso negado. Você não tem permissões para acessar este aplicativo. É necessário ter a role "Administrator" ou "Consultant".'
+          );
+        } else {
+          showError(
+            "Erro de autenticação: " +
+              (err.error_description || err.message || "Falha na autenticação")
+          );
+        }
       }
-    }
-    
-    // Captura erros globais de JavaScript
-    window.onerror = function(message, source, lineno, colno, error) {
-      showError('Erro de JavaScript: ' + message);
-      console.error('Erro global:', {message, source, lineno, colno, error});
-      return true;
-    };
-    
-    // Verifica se o script do OIDC foi carregado
-    window.setTimeout(function() {
-      if (typeof Oidc === 'undefined') {
-        showError('Erro: Biblioteca OIDC não carregada corretamente. Verifique a conexão com a internet ou tente recarregar a página.');
-      }
-    }, 2000);
-  </script>
-</body>
+
+      // Captura erros globais de JavaScript
+      window.onerror = function (message, source, lineno, colno, error) {
+        showError("Erro de JavaScript: " + message);
+        console.error("Erro global:", {
+          message,
+          source,
+          lineno,
+          colno,
+          error,
+        });
+        return true;
+      };
+
+      // Verifica se o script do OIDC foi carregado
+      window.setTimeout(function () {
+        if (typeof Oidc === "undefined") {
+          showError(
+            "Erro: Biblioteca OIDC não carregada corretamente. Verifique a conexão com a internet ou tente recarregar a página."
+          );
+        }
+      }, 2000);
+    </script>
+  </body>
 </html>
