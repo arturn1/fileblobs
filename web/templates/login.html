@@ -48,9 +48,36 @@
       <div id="loginResult" class="login-message">
         Iniciando autenticação...
       </div>
-    </div>
+    </div>    <script src="/js/oidc-client.min.js"></script>
+    <script>
+      // Limpar qualquer cache OIDC na página de login
+      if (window.Oidc) {
+        try {
+          // Configuração OIDC igual à do main.js
+          const settings = {
+            authority: 'https://connect-staging.fi-group.com/identity',
+            client_id: 'fileblobs',
+            redirect_uri: window.location.origin + '/login',
+            response_type: 'id_token token',
+            scope: 'openid profile email',
+            filterProtocolClaims: true,
+            loadUserInfo: true
+          };
 
-    <script src="/js/oidc-client.min.js"></script>
+          // Cria uma instância do UserManager
+          const mgr = new Oidc.UserManager(settings);
+          
+          // Remove o usuário da sessão OIDC para garantir um login limpo
+          mgr.removeUser().then(() => {
+            console.log("Cache OIDC limpo na página de login");
+          }).catch(err => {
+            console.error("Erro ao limpar cache OIDC:", err);
+          });
+        } catch (e) {
+          console.error("Erro ao inicializar limpeza OIDC:", e);
+        }
+      }
+    </script>
     <script src="/js/main.js"></script>
     <script>
       // Função para mostrar mensagens de erro em formato amigável

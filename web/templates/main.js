@@ -48,7 +48,6 @@ function handleAuthError(err) {
 
 function processLoginResponse() {
   console.log("Processing login response...");
-  console.log("URL hash:", window.location.hash);
   console.log("URL search:", window.location.search);  mgr.signinRedirectCallback().then(login => {
       console.log("Login successful, token received:", login.access_token.substring(0, 10) + "...");
       fetch("/auth/store-token", {

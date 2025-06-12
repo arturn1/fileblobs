@@ -17,6 +17,7 @@ var storageAccountsTmpl = template.Must(template.ParseFiles("web/templates/stora
 var addAccountTmpl = template.Must(template.ParseFiles("web/templates/add_account.html"))
 var editAccountTmpl = template.Must(template.ParseFiles("web/templates/edit_account.html"))
 var accessDeniedTmpl = template.Must(template.ParseFiles("web/templates/access_denied.html"))
+var logoutTmpl = template.Must(template.ParseFiles("web/templates/logout.html"))
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	// Check if user is already logged in
@@ -77,7 +78,8 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 	})
 
-	http.Redirect(w, r, "/login", http.StatusSeeOther)
+	// Exibir a página intermediária de logout em vez de redirecionar diretamente
+	logoutTmpl.Execute(w, nil)
 }
 
 func StorageAccountsHandler(w http.ResponseWriter, r *http.Request) {
