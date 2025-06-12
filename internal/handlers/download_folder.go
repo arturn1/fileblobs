@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fileblobs/pkg/azure"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -12,7 +13,7 @@ import (
 func DownloadFolderHandler(w http.ResponseWriter, r *http.Request) {
 	prefix := r.URL.Query().Get("path")
 	if prefix == "" {
-		http.Error(w, "Caminho não informado", http.StatusBadRequest)
+		respondWithError(w, r, "Caminho não informado", http.StatusBadRequest)
 		return
 	}
 
@@ -22,7 +23,13 @@ func DownloadFolderHandler(w http.ResponseWriter, r *http.Request) {
 
 	files, err := azure.ListBlobsFromFolder(prefix)
 	if err != nil {
-		http.Error(w, "Erro ao listar arquivos", http.StatusInternalServerError)
+		log.Printf("Erro ao listar arquivos da pasta %s: %v", prefix, err)
+		respondWithError(w, r, "Erro ao listar arquivos", http.StatusInternalServerError)
+		return
+	}
+
+	if len(files) == 0 {
+		respondWithError(w, r, "Pasta vazia ou não encontrada", http.StatusNotFound)
 		return
 	}
 
@@ -35,6 +42,7 @@ func DownloadFolderHandler(w http.ResponseWriter, r *http.Request) {
 	for _, path := range files {
 		data, err := azure.DownloadBlob(path)
 		if err != nil {
+			log.Printf("Erro ao baixar arquivo %s: %v", path, err)
 			continue
 		}
 
@@ -45,6 +53,7 @@ func DownloadFolderHandler(w http.ResponseWriter, r *http.Request) {
 
 		fw, err := zipWriter.Create(relative)
 		if err != nil {
+			log.Printf("Erro ao criar entrada no ZIP para %s: %v", relative, err)
 			continue
 		}
 

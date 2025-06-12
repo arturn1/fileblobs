@@ -31,6 +31,10 @@ var (
 	authData     AuthData
 	authDataOnce sync.Once
 	authMutex    sync.RWMutex
+
+	// Array para armazenar contas temporárias na memória
+	temporaryAccounts []StorageAccount
+	tempMutex         sync.RWMutex
 )
 
 const dataDir = "./data"
@@ -45,9 +49,6 @@ func initAuthData() {
 			return
 		}
 	}
-
-	// Get the fixed account key from environment variable
-	fixedAccountKey := os.Getenv("AZURE_STORAGE_ACCOUNT_KEY")
 
 	authFilePath := filepath.Join(dataDir, authFile)
 
@@ -66,7 +67,7 @@ func initAuthData() {
 					Name:          "Conta Padrão",
 					Description:   "Conta de armazenamento padrão",
 					AccountName:   os.Getenv("AZURE_STORAGE_ACCOUNT_NAME"),
-					AccountKey:    fixedAccountKey,
+					AccountKey:    os.Getenv("AZURE_STORAGE_ACCOUNT_KEY"),
 					ContainerName: os.Getenv("AZURE_STORAGE_CONTAINER"),
 				},
 			},
@@ -169,12 +170,6 @@ func GetStorageAccounts() []StorageAccount {
 
 	return combinedAccounts
 }
-
-// In-memory storage for development
-var (
-	temporaryAccounts []StorageAccount
-	tempMutex         sync.RWMutex
-)
 
 func AddStorageAccount(account StorageAccount) error {
 	authDataOnce.Do(initAuthData)

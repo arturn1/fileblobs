@@ -9,12 +9,12 @@ import (
 
 func main() {
 	config.LoadEnv()
+
 	// Authentication routes
 	http.HandleFunc("/login", handlers.LoginHandler)
 	http.HandleFunc("/logout", handlers.LogoutHandler)
 	http.HandleFunc("/storage-accounts", handlers.StorageAccountsHandler)
 	http.HandleFunc("/add-account", handlers.AddAccountHandler)
-	http.HandleFunc("/edit-account", handlers.EditAccountHandler)
 	http.HandleFunc("/select-account", handlers.SelectAccountHandler)
 
 	// File handling routes - protected by auth middleware

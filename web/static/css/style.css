@@ -66,32 +66,6 @@ h1 {
   color: #fff;
 }
 
-.btn-outline-danger {
-  color: #dc3545;
-  border-color: #dc3545;
-}
-
-.btn-outline-danger:hover {
-  color: #fff;
-  background-color: #dc3545;
-  border-color: #dc3545;
-}
-
-.btn-outline-primary {
-  color: #1d4ed8;
-  border-color: #1d4ed8;
-}
-
-.btn-outline-primary:hover {
-  color: #fff;
-  background-color: #1d4ed8;
-  border-color: #1d4ed8;
-}
-
-.me-2 {
-  margin-right: 0.5rem;
-}
-
 .search {
   margin-bottom: 20px;
   display: flex;

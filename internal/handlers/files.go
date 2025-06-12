@@ -75,8 +75,20 @@ func ListFilesHandler(w http.ResponseWriter, r *http.Request) {
 
 	folders, files, err := azure.ListFoldersAndFiles(prefix)
 	if err != nil {
-		http.Error(w, "Erro ao listar blobs", http.StatusInternalServerError)
-		log.Println(err)
+		log.Printf("Erro ao listar blobs: %v", err)
+
+		// Set an error message in a cookie
+		errorCookie := http.Cookie{
+			Name:     "blob_list_error",
+			Value:    "Erro ao listar blobs. A conta pode estar inválida ou inacessível.",
+			Path:     "/",
+			MaxAge:   60,
+			HttpOnly: false,
+		}
+		http.SetCookie(w, &errorCookie)
+
+		// Redirect to storage accounts page
+		http.Redirect(w, r, "/storage-accounts", http.StatusSeeOther)
 		return
 	}
 

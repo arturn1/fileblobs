@@ -11,7 +11,6 @@ import (
 var loginTmpl = template.Must(template.ParseFiles("web/templates/login.html"))
 var storageAccountsTmpl = template.Must(template.ParseFiles("web/templates/storage_accounts.html"))
 var addAccountTmpl = template.Must(template.ParseFiles("web/templates/add_account.html"))
-var editAccountTmpl = template.Must(template.ParseFiles("web/templates/edit_account.html"))
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	// Check if user is already logged in
@@ -72,14 +71,23 @@ func AddAccountHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
-	if r.Method == http.MethodPost { // Process the form submission
+
+	if r.Method == http.MethodPost {
+		// Process the form submission
 		name := r.FormValue("name")
 		description := r.FormValue("description")
 		accountName := r.FormValue("accountName")
 		accountKey := r.FormValue("accountKey")
 		containerName := r.FormValue("containerName")
 
-		// Create new storage account (nome será gerado no repository se vazio)
+		// Validate inputs
+		if name == "" || accountName == "" || accountKey == "" || containerName == "" {
+			addAccountTmpl.Execute(w, map[string]interface{}{
+				"Error": "Todos os campos são obrigatórios",
+			})
+			return
+		}
+		// Create new storage account
 		newAccount := repository.StorageAccount{
 			Name:          name,
 			Description:   description,
@@ -89,7 +97,13 @@ func AddAccountHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Add to repository (array simples)
-		_ = repository.AddStorageAccount(newAccount)
+		err := repository.AddStorageAccount(newAccount)
+		if err != nil {
+			addAccountTmpl.Execute(w, map[string]interface{}{
+				"Error": err.Error(),
+			})
+			return
+		}
 
 		// Redirect to storage accounts list
 		http.Redirect(w, r, "/storage-accounts", http.StatusSeeOther)
@@ -121,88 +135,28 @@ func SelectAccountHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/storage-accounts", http.StatusSeeOther)
 		return
 	}
-
 	// Set environment variables for Azure storage
 	os.Setenv("AZURE_STORAGE_ACCOUNT_NAME", account.AccountName)
 	os.Setenv("AZURE_STORAGE_ACCOUNT_KEY", account.AccountKey)
 	os.Setenv("AZURE_STORAGE_CONTAINER", account.ContainerName)
+
+	// Store the selected account in a cookie for better state management
+	selectedAccountCookie := &http.Cookie{
+		Name:     "selected_account",
+		Value:    accountName,
+		Path:     "/",
+		MaxAge:   86400, // 24 hours
+		HttpOnly: true,
+		Secure:   r.TLS != nil,
+		SameSite: http.SameSiteLaxMode,
+	}
+	http.SetCookie(w, selectedAccountCookie)
 
 	// Clear Azure client cache to use new credentials
 	azure.ResetClient()
 
 	// Redirect to home page to browse files
 	http.Redirect(w, r, "/", http.StatusSeeOther)
-}
-
-// EditAccountHandler handles the editing of a storage account
-func EditAccountHandler(w http.ResponseWriter, r *http.Request) {
-	// Check if user is authenticated
-	_, authenticated := getSessionUser(r)
-	if !authenticated {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
-
-	// Get account name from query parameters
-	accountName := r.URL.Query().Get("name")
-
-	// Prevent editing of default account
-	if accountName == "Conta Padrão" {
-		http.Redirect(w, r, "/storage-accounts", http.StatusSeeOther)
-		return
-	}
-
-	if r.Method == http.MethodPost {
-		// Process the form submission
-		originalName := r.FormValue("originalName")
-		name := r.FormValue("name")
-		description := r.FormValue("description")
-		accountName := r.FormValue("accountName")
-		accountKey := r.FormValue("accountKey")
-		containerName := r.FormValue("containerName")
-
-		// Prevent editing of default account (extra safety check)
-		if originalName == "Conta Padrão" {
-			http.Redirect(w, r, "/storage-accounts", http.StatusSeeOther)
-			return
-		}
-
-		// Create updated storage account
-		updatedAccount := repository.StorageAccount{
-			Name:          name,
-			Description:   description,
-			AccountName:   accountName,
-			AccountKey:    accountKey,
-			ContainerName: containerName,
-		}
-
-		// Update account in repository
-		err := repository.UpdateStorageAccount(originalName, updatedAccount)
-		if err != nil {
-			// Handle error
-			editAccountTmpl.Execute(w, map[string]interface{}{
-				"Error":   "Erro ao atualizar conta: " + err.Error(),
-				"Account": updatedAccount,
-			})
-			return
-		}
-
-		// Redirect to storage accounts list
-		http.Redirect(w, r, "/storage-accounts", http.StatusSeeOther)
-		return
-	}
-
-	// Get account from repository
-	account, found := repository.GetStorageAccountByName(accountName)
-	if !found {
-		http.Redirect(w, r, "/storage-accounts", http.StatusSeeOther)
-		return
-	}
-
-	// Display edit account form
-	editAccountTmpl.Execute(w, map[string]interface{}{
-		"Account": account,
-	})
 }
 
 // Session management
