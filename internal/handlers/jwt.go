@@ -71,6 +71,27 @@ func HasValidRole(claims *TokenClaims) bool {
 	log.Printf("Verificando roles para usuário %s: Role padrão: [%s], MsRoles: %v, Roles: %v, Groups: %v",
 		claims.Name, claims.Role, claims.MsRoles, claims.Roles, claims.Groups)
 
+	// Verificar se o usuário tem pelo menos uma role (independente de qual for)
+	hasAnyRole := false
+	if claims.Role != "" {
+		hasAnyRole = true
+	}
+	if len(claims.MsRoles) > 0 {
+		hasAnyRole = true
+	}
+	if len(claims.Roles) > 0 {
+		hasAnyRole = true
+	}
+	if len(claims.Groups) > 0 {
+		hasAnyRole = true
+	}
+
+	// Se o usuário não tem nenhuma role, negar acesso
+	if !hasAnyRole {
+		log.Printf("Usuário %s não tem nenhuma role atribuída", claims.Name)
+		return false
+	}
+
 	// Verifica se o campo role existe e é válido
 	if claims.Role != "" {
 		for _, validRole := range validRoles {
@@ -133,4 +154,43 @@ func HasValidRole(claims *TokenClaims) bool {
 
 	log.Printf("Nenhuma role válida encontrada para o usuário %s", claims.Name)
 	return false
+}
+
+// DumpClaimsInfo registra todas as informações de claims para depuração
+func DumpClaimsInfo(claims *TokenClaims) {
+	log.Printf("=== DUMP DE CLAIMS PARA USUÁRIO: %s ===", claims.Name)
+	log.Printf("Sub: %s", claims.Sub)
+	log.Printf("Name: %s", claims.Name)
+	log.Printf("Email: %s", claims.Email)
+	log.Printf("Role: %s", claims.Role)
+	log.Printf("MsRoles raw: %s", string(claims.MsRole))
+	log.Printf("MsRoles processado: %v", claims.MsRoles)
+	log.Printf("Roles: %v", claims.Roles)
+	log.Printf("Groups: %v", claims.Groups)
+	log.Printf("PreferredName: %s", claims.PreferredName)
+
+	// Verificar a existência de "IdentityConsultant" em todos os campos
+	if strings.EqualFold(claims.Role, "IdentityConsultant") {
+		log.Printf("Role 'IdentityConsultant' encontrada exata em claims.Role")
+	}
+
+	for _, role := range claims.MsRoles {
+		if strings.EqualFold(role, "IdentityConsultant") {
+			log.Printf("Role 'IdentityConsultant' encontrada exata em claims.MsRoles")
+		}
+	}
+
+	for _, role := range claims.Roles {
+		if strings.EqualFold(role, "IdentityConsultant") {
+			log.Printf("Role 'IdentityConsultant' encontrada exata em claims.Roles")
+		}
+	}
+
+	for _, group := range claims.Groups {
+		if strings.EqualFold(group, "IdentityConsultant") {
+			log.Printf("Role 'IdentityConsultant' encontrada exata em claims.Groups")
+		}
+	}
+
+	log.Printf("=== FIM DO DUMP DE CLAIMS ===")
 }

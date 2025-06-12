@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fileblobs/internal/repository"
 	"fileblobs/pkg/azure"
+	"fmt"
 	"html/template"
 	"io"
 	"log"
@@ -93,9 +94,63 @@ func StorageAccountsHandler(w http.ResponseWriter, r *http.Request) {
 	// Verifica se o usuário é administrador
 	isAdmin := repository.IsUserAdmin(username)
 
-	// Se estiver usando autenticação OIDC, verifica o header X-User-Is-Admin
-	if r.Header.Get("X-User-Is-Admin") == "true" {
-		isAdmin = true
+	// Valor padrão para role
+	userRole := ""
+	// Se estiver usando autenticação OIDC, verificar as informações do token
+	tokenCookie, err := r.Cookie("access_token")
+	if err == nil && tokenCookie.Value != "" {
+		// Verificar se o token é válido e obter as claims
+		claims, err := ParseJWTClaims(tokenCookie.Value)
+		if err == nil {
+			// Usar a função de diagnóstico para ver todas as roles
+			DumpClaimsInfo(claims)
+
+			// Verificar role nas várias possíveis fontes
+			// Prioridade: MsRoles > Roles > Role (campo simples)
+			if len(claims.MsRoles) > 0 {
+				userRole = claims.MsRoles[0] // Pega a primeira role do array MsRoles
+				log.Printf("Usando a primeira role de MsRoles: %s", userRole)
+			} else if len(claims.Roles) > 0 {
+				userRole = claims.Roles[0] // Pega a primeira role do array Roles
+				log.Printf("Usando a primeira role de Roles: %s", userRole)
+			} else if claims.Role != "" {
+				userRole = claims.Role // Usa o campo Role simples
+				log.Printf("Usando o campo Role simples: %s", userRole)
+			}
+
+			// Se for admin, definir a flag
+			if r.Header.Get("X-User-Is-Admin") == "true" ||
+				strings.Contains(strings.ToLower(userRole), "admin") ||
+				strings.EqualFold(userRole, "Administrator") {
+				isAdmin = true
+				log.Printf("Usuário definido como administrador baseado na role: %s", userRole)
+			}
+		}
+	}
+
+	// Formatar a role para exibição mais amigável, removendo prefixos e sufixos técnicos
+	displayRole := userRole
+	if displayRole != "" {
+		// Remover prefixos comuns como "http://schemas.microsoft.com/..."
+		if strings.Contains(displayRole, "/") {
+			parts := strings.Split(displayRole, "/")
+			displayRole = parts[len(parts)-1]
+		}
+
+		// Substituir caracteres especiais e formatação
+		displayRole = strings.ReplaceAll(displayRole, "#", "")
+		displayRole = strings.ReplaceAll(displayRole, "_", " ")
+
+		// Capitalizar primeira letra de cada palavra
+		words := strings.Fields(displayRole)
+		for i, word := range words {
+			if len(word) > 0 {
+				words[i] = strings.ToUpper(word[:1]) + word[1:]
+			}
+		}
+		displayRole = strings.Join(words, " ")
+
+		log.Printf("Role formatada para exibição: %s", displayRole)
 	}
 
 	// Display storage accounts
@@ -104,6 +159,8 @@ func StorageAccountsHandler(w http.ResponseWriter, r *http.Request) {
 		"Accounts": accounts,
 		"IsAdmin":  isAdmin,
 		"UserName": username,
+		"Role":     displayRole,
+		"RawRole":  userRole, // Adicionar a role original para debugging
 	})
 }
 
@@ -530,6 +587,38 @@ func AccessDeniedPageHandler(w http.ResponseWriter, r *http.Request) {
 	message := r.URL.Query().Get("message")
 	if message == "" {
 		message = "Seu usuário não possui as permissões necessárias para acessar esta aplicação."
+	}
+
+	// Verifica se temos um token para extrair mais informações
+	tokenCookie, err := r.Cookie("access_token")
+	roleInfo := ""
+	if err == nil && tokenCookie.Value != "" {
+		claims, err := ParseJWTClaims(tokenCookie.Value)
+		if err == nil {
+			// Obter informações sobre as roles do usuário para diagnóstico
+			roleInfo = "Suas roles: "
+			if claims.Role != "" {
+				roleInfo += fmt.Sprintf("Role: %s, ", claims.Role)
+			}
+			if len(claims.MsRoles) > 0 {
+				roleInfo += fmt.Sprintf("MsRoles: %v, ", claims.MsRoles)
+			}
+			if len(claims.Roles) > 0 {
+				roleInfo += fmt.Sprintf("Roles: %v, ", claims.Roles)
+			}
+			if len(claims.Groups) > 0 {
+				roleInfo += fmt.Sprintf("Groups: %v", claims.Groups)
+			}
+
+			// Se não encontramos nenhuma role
+			if claims.Role == "" && len(claims.MsRoles) == 0 && len(claims.Roles) == 0 && len(claims.Groups) == 0 {
+				roleInfo += "Nenhuma role encontrada no token."
+			}
+		}
+	}
+
+	if roleInfo != "" {
+		message += " " + roleInfo
 	}
 
 	// Limpar todos os cookies de autenticação para evitar loops de redirecionamento

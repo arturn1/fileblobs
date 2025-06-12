@@ -20,11 +20,7 @@
                 <h3 class="mb-0">Selecionar Conta de Armazenamento</h3>
                 <div>
                   <small class="text-light">
-                    {{if .IsAdmin}}
-                    <span class="badge bg-warning text-dark">Administrador</span>
-                    {{else}}
-                    <span class="badge bg-info text-dark">Consultor</span>
-                    {{end}}
+                    <span class="badge bg-info text-dark">{{.Role}}</span>
                   </small>
                 </div>
               </div>
@@ -49,7 +45,8 @@
                   <div class="btn-group">
                     <a
                       href="/select-account?name={{.Name}}"
-                      class="btn btn-primary btn-sm">Selecionar</a
+                      class="btn btn-primary btn-sm"
+                      >Selecionar</a
                     >
                     {{if ne .Name "Conta Padrão"}} {{if $.IsAdmin}}
                     <a
