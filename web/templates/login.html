@@ -88,15 +88,13 @@
       }
       // Função para tratar erros de autenticação
       function handleAuthError(err) {
-        console.error("Erro de autenticação:", err);
-
-        // Verificar se é um erro de permissão
+        console.error("Erro de autenticação:", err);        // Verificar se é um erro de permissão
         if (
           err.error === "access_denied" ||
           (err.message && err.message.includes("access_denied"))
         ) {
           showError(
-            'Acesso negado. Você não tem permissões para acessar este aplicativo. É necessário ter a role "Administrator" ou "Consultant".'
+            'Acesso negado. Você não tem permissões para acessar este aplicativo. É necessário ter a role "Administrator" ou "Consultant". A role "IdentityConsultant" não é suficiente.'
           );
         } else {
           showError(

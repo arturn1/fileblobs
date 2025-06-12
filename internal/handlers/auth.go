@@ -127,30 +127,35 @@ func StorageAccountsHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-
 	// Formatar a role para exibição mais amigável, removendo prefixos e sufixos técnicos
 	displayRole := userRole
 	if displayRole != "" {
-		// Remover prefixos comuns como "http://schemas.microsoft.com/..."
-		if strings.Contains(displayRole, "/") {
-			parts := strings.Split(displayRole, "/")
-			displayRole = parts[len(parts)-1]
-		}
-
-		// Substituir caracteres especiais e formatação
-		displayRole = strings.ReplaceAll(displayRole, "#", "")
-		displayRole = strings.ReplaceAll(displayRole, "_", " ")
-
-		// Capitalizar primeira letra de cada palavra
-		words := strings.Fields(displayRole)
-		for i, word := range words {
-			if len(word) > 0 {
-				words[i] = strings.ToUpper(word[:1]) + word[1:]
+		// Verificar se é "IdentityConsultant" - se for, não mostrar essa role
+		if strings.Contains(strings.ToLower(displayRole), "identity") {
+			displayRole = ""
+			log.Printf("Role IdentityConsultant detectada, não será exibida: %s", userRole)
+		} else {
+			// Remover prefixos comuns como "http://schemas.microsoft.com/..."
+			if strings.Contains(displayRole, "/") {
+				parts := strings.Split(displayRole, "/")
+				displayRole = parts[len(parts)-1]
 			}
-		}
-		displayRole = strings.Join(words, " ")
 
-		log.Printf("Role formatada para exibição: %s", displayRole)
+			// Substituir caracteres especiais e formatação
+			displayRole = strings.ReplaceAll(displayRole, "#", "")
+			displayRole = strings.ReplaceAll(displayRole, "_", " ")
+
+			// Capitalizar primeira letra de cada palavra
+			words := strings.Fields(displayRole)
+			for i, word := range words {
+				if len(word) > 0 {
+					words[i] = strings.ToUpper(word[:1]) + word[1:]
+				}
+			}
+			displayRole = strings.Join(words, " ")
+
+			log.Printf("Role formatada para exibição: %s", displayRole)
+		}
 	}
 
 	// Display storage accounts
@@ -488,7 +493,6 @@ func StoreTokenHandler(w http.ResponseWriter, r *http.Request) {
 			MaxAge:   300, // 5 minutos
 			HttpOnly: true,
 		})
-
 		// Sempre definir o status como 403 Forbidden para que o cliente possa detectar
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusForbidden)
@@ -496,7 +500,7 @@ func StoreTokenHandler(w http.ResponseWriter, r *http.Request) {
 		// Incluir informação de redirecionamento no JSON
 		json.NewEncoder(w).Encode(map[string]string{
 			"error":             "access_denied",
-			"error_description": "Acesso negado. Você não tem permissão para acessar este aplicativo. Roles necessárias: Administrator ou Consultant",
+			"error_description": "Acesso negado. Você não tem permissão para acessar este aplicativo. Roles necessárias: Administrator ou Consultant. A role IdentityConsultant não é suficiente.",
 			"redirect":          "/access-denied",
 		})
 		return
@@ -594,8 +598,7 @@ func AccessDeniedPageHandler(w http.ResponseWriter, r *http.Request) {
 	roleInfo := ""
 	if err == nil && tokenCookie.Value != "" {
 		claims, err := ParseJWTClaims(tokenCookie.Value)
-		if err == nil {
-			// Obter informações sobre as roles do usuário para diagnóstico
+		if err == nil { // Obter informações sobre as roles do usuário para diagnóstico
 			roleInfo = "Suas roles: "
 			if claims.Role != "" {
 				roleInfo += fmt.Sprintf("Role: %s, ", claims.Role)
@@ -613,6 +616,28 @@ func AccessDeniedPageHandler(w http.ResponseWriter, r *http.Request) {
 			// Se não encontramos nenhuma role
 			if claims.Role == "" && len(claims.MsRoles) == 0 && len(claims.Roles) == 0 && len(claims.Groups) == 0 {
 				roleInfo += "Nenhuma role encontrada no token."
+			}
+
+			// Verificar especificamente por IdentityConsultant
+			hasIdentityConsultant := false
+			if strings.Contains(strings.ToLower(claims.Role), "identity") {
+				hasIdentityConsultant = true
+			}
+			for _, role := range claims.MsRoles {
+				if strings.Contains(strings.ToLower(role), "identity") {
+					hasIdentityConsultant = true
+					break
+				}
+			}
+			for _, role := range claims.Roles {
+				if strings.Contains(strings.ToLower(role), "identity") {
+					hasIdentityConsultant = true
+					break
+				}
+			}
+
+			if hasIdentityConsultant {
+				roleInfo += " (Detectada a role IdentityConsultant, que não é suficiente para acesso.)"
 			}
 		}
 	}

@@ -65,8 +65,8 @@ func ParseJWTClaims(tokenString string) (*TokenClaims, error) {
 
 // HasValidRole verifica se o usuário tem pelo menos uma das roles permitidas
 func HasValidRole(claims *TokenClaims) bool {
-	// Lista de roles permitidas
-	validRoles := []string{"Administrator", "Consultant", "Admin", "admin", "IdentityConsultant"}
+	// Lista de roles permitidas (removido "IdentityConsultant")
+	validRoles := []string{"Administrator", "Consultant", "Admin", "admin"}
 
 	log.Printf("Verificando roles para usuário %s: Role padrão: [%s], MsRoles: %v, Roles: %v, Groups: %v",
 		claims.Name, claims.Role, claims.MsRoles, claims.Roles, claims.Groups)
@@ -101,8 +101,9 @@ func HasValidRole(claims *TokenClaims) bool {
 			}
 		}
 
-		// Verificação especial para "IdentityConsultant" no campo Role
-		if strings.Contains(strings.ToLower(claims.Role), "consultant") {
+		// Verificação para "Consultant" no campo Role, mas não "IdentityConsultant"
+		if strings.Contains(strings.ToLower(claims.Role), "consultant") &&
+			!strings.Contains(strings.ToLower(claims.Role), "identity") {
 			log.Printf("String 'consultant' encontrada em claims.Role: %s", claims.Role)
 			return true
 		}
@@ -117,10 +118,10 @@ func HasValidRole(claims *TokenClaims) bool {
 			}
 		}
 
-		// Verificação especial para "IdentityConsultant" que equivale a "Consultant"
-		if strings.Contains(strings.ToLower(msRole), "consultant") ||
-			strings.Contains(strings.ToLower(msRole), "identity") {
-			log.Printf("String 'consultant' ou 'identity' encontrada em claims.MsRoles: %s", msRole)
+		// Verificação para "Consultant", mas não "IdentityConsultant"
+		if strings.Contains(strings.ToLower(msRole), "consultant") &&
+			!strings.Contains(strings.ToLower(msRole), "identity") {
+			log.Printf("String 'consultant' encontrada em claims.MsRoles: %s", msRole)
 			return true
 		}
 	}
@@ -134,20 +135,21 @@ func HasValidRole(claims *TokenClaims) bool {
 			}
 		}
 
-		// Verificação especial para "IdentityConsultant" no array de roles
-		if strings.Contains(strings.ToLower(role), "consultant") ||
-			strings.Contains(strings.ToLower(role), "identity") {
-			log.Printf("String 'consultant' ou 'identity' encontrada em claims.Roles: %s", role)
+		// Verificação para "Consultant", mas não "IdentityConsultant"
+		if strings.Contains(strings.ToLower(role), "consultant") &&
+			!strings.Contains(strings.ToLower(role), "identity") {
+			log.Printf("String 'consultant' encontrada em claims.Roles: %s", role)
 			return true
 		}
 	}
 
 	// Verifica no array de grupos (algumas vezes as roles vêm como grupos)
 	for _, group := range claims.Groups {
-		if strings.Contains(strings.ToLower(group), "consultant") ||
-			strings.Contains(strings.ToLower(group), "admin") ||
-			strings.Contains(strings.ToLower(group), "identity") {
-			log.Printf("String 'consultant', 'admin' ou 'identity' encontrada em claims.Groups: %s", group)
+		// Checagem para "Consultant" ou "Admin", mas não "IdentityConsultant"
+		if (strings.Contains(strings.ToLower(group), "consultant") &&
+			!strings.Contains(strings.ToLower(group), "identity")) ||
+			strings.Contains(strings.ToLower(group), "admin") {
+			log.Printf("String 'consultant' ou 'admin' encontrada em claims.Groups: %s", group)
 			return true
 		}
 	}
@@ -168,29 +170,6 @@ func DumpClaimsInfo(claims *TokenClaims) {
 	log.Printf("Roles: %v", claims.Roles)
 	log.Printf("Groups: %v", claims.Groups)
 	log.Printf("PreferredName: %s", claims.PreferredName)
-
-	// Verificar a existência de "IdentityConsultant" em todos os campos
-	if strings.EqualFold(claims.Role, "IdentityConsultant") {
-		log.Printf("Role 'IdentityConsultant' encontrada exata em claims.Role")
-	}
-
-	for _, role := range claims.MsRoles {
-		if strings.EqualFold(role, "IdentityConsultant") {
-			log.Printf("Role 'IdentityConsultant' encontrada exata em claims.MsRoles")
-		}
-	}
-
-	for _, role := range claims.Roles {
-		if strings.EqualFold(role, "IdentityConsultant") {
-			log.Printf("Role 'IdentityConsultant' encontrada exata em claims.Roles")
-		}
-	}
-
-	for _, group := range claims.Groups {
-		if strings.EqualFold(group, "IdentityConsultant") {
-			log.Printf("Role 'IdentityConsultant' encontrada exata em claims.Groups")
-		}
-	}
 
 	log.Printf("=== FIM DO DUMP DE CLAIMS ===")
 }
