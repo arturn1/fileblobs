@@ -44,7 +44,7 @@
                   <div class="btn-group">
                     <a
                       href="/select-account?name={{.Name}}"
-                      class="btn btn-primary btn-sm"
+                      class="btn btn-outline-primary btn-sm"
                       >Selecionar</a
                     >
                     {{if ne .Name "Conta Padrão"}} {{if $.IsAdmin}}
@@ -62,11 +62,12 @@
                 <a
                   href="#"
                   onclick="clearStorageAndLogout()"
-                  class="btn btn-outline-danger"
+                  class="btn btn-danger"
+                  style="padding: 10px 10px"
                   >Sair</a
                 >
                 {{if .IsAdmin}}
-                <a href="/add-account" class="btn btn-outline-primary"
+                <a href="/add-account" class="btn btn-primary"
                   >Adicionar Nova Conta</a
                 >
                 {{end}}
