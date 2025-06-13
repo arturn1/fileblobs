@@ -66,6 +66,17 @@ var tmpl = template.Must(template.New("index.html").Funcs(template.FuncMap{
 }).ParseFiles("web/templates/index.html"))
 
 func ListFilesHandler(w http.ResponseWriter, r *http.Request) {
+	// Verificar o cookie selected_account logo no início
+	selectedAccountCookie, cookieErr := r.Cookie("selected_account")
+	selectedAccountName := ""
+
+	if cookieErr == nil {
+		selectedAccountName = selectedAccountCookie.Value
+		log.Printf("Cookie 'selected_account' encontrado com valor: '%s'", selectedAccountName)
+	} else {
+		log.Printf("Cookie 'selected_account' não encontrado: %v", cookieErr)
+	}
+
 	prefix := r.URL.Query().Get("prefix")
 	if prefix != "" && !strings.HasSuffix(prefix, "/") {
 		prefix += "/"
@@ -92,28 +103,54 @@ func ListFilesHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/storage-accounts", http.StatusSeeOther)
 		return
 	}
+
 	if query != "" {
 		folders = filterByQuery(folders, query)
 		files = filterByQuery(files, query)
 	}
+	// Verificar se é a conta padrão - verificando várias formas do nome para ser mais robusto
+	isDefaultAccount := selectedAccountName == "" ||
+		strings.Contains(strings.ToLower(selectedAccountName), "conta padr") ||
+		selectedAccountName == "Conta Padrão"
 
-	// Verificar se estamos usando a conta padrão
-	selectedAccountName := ""
-	selectedAccountCookie, err := r.Cookie("selected_account")
-	if err == nil && selectedAccountCookie.Value != "" {
-		selectedAccountName = selectedAccountCookie.Value
+	// Verificamos se estamos na raiz da conta padrão
+	isRootOfDefaultAccount := isDefaultAccount && prefix == ""
+
+	// Determinar se devemos mostrar os botões de ação
+	showActionButtons := !isRootOfDefaultAccount // Inverso da condição para esconder
+
+	// Log para debug detalhado com mais informações
+	log.Printf("Verificação de botões: Account='%s', IsDefault=%v, Prefix='%s', IsRootOfDefault=%v, ShowButtons=%v",
+		selectedAccountName, isDefaultAccount, prefix, isRootOfDefaultAccount, showActionButtons)
+
+	// Garantir que o cookie esteja definido como vazio para a conta padrão
+	// Isso ajuda a evitar inconsistências no estado
+	if isDefaultAccount && selectedAccountName == "" {
+		http.SetCookie(w, &http.Cookie{
+			Name:     "selected_account",
+			Value:    "",
+			Path:     "/",
+			MaxAge:   -1,
+			HttpOnly: true,
+		})
 	}
 
-	isDefaultAccount := selectedAccountName == "" || selectedAccountName == "Conta Padrão"
-
+	// Log para debug
+	log.Printf("Selected Account: '%s', Show Buttons: %v, Prefix: '%s', Is Default: %v, Root of Default: %v",
+		selectedAccountName, showActionButtons, prefix, isDefaultAccount, isRootOfDefaultAccount)
 	data := PageData{
 		Folders:          folders,
 		Files:            files,
 		Prefix:           prefix,
 		Query:            query,
 		DownloadMode:     downloadMode,
-		IsDefaultAccount: isDefaultAccount,
+		IsDefaultAccount: isRootOfDefaultAccount, // True quando estamos na raiz da conta padrão (onde queremos esconder botões)
 	}
+
+	// Log extra para debug na renderização do template
+	log.Printf("Renderizando template com IsDefaultAccount=%v (botões %s)",
+		isRootOfDefaultAccount,
+		map[bool]string{true: "escondidos", false: "visíveis"}[isRootOfDefaultAccount])
 
 	tmpl.Execute(w, data)
 }

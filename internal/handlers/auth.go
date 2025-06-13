@@ -79,6 +79,17 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 	})
 
+	// Limpar o cookie de conta selecionada
+	http.SetCookie(w, &http.Cookie{
+		Name:     "selected_account",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+	})
+
+	log.Printf("Sessão encerrada, cookies limpos")
+
 	// Exibir a página intermediária de logout em vez de redirecionar diretamente
 	logoutTmpl.Execute(w, nil)
 }
@@ -383,13 +394,10 @@ func SelectAccountHandler(w http.ResponseWriter, r *http.Request) {
 	if !found {
 		http.Redirect(w, r, "/storage-accounts", http.StatusSeeOther)
 		return
-	}
-	// Set environment variables for Azure storage
+	} // Set environment variables for Azure storage
 	os.Setenv("AZURE_STORAGE_ACCOUNT_NAME", account.AccountName)
 	os.Setenv("AZURE_STORAGE_ACCOUNT_KEY", account.AccountKey)
-	os.Setenv("AZURE_STORAGE_CONTAINER", account.ContainerName)
-
-	// Store the selected account in a cookie for better state management
+	os.Setenv("AZURE_STORAGE_CONTAINER", account.ContainerName) // Store the selected account in a cookie for better state management
 	selectedAccountCookie := &http.Cookie{
 		Name:     "selected_account",
 		Value:    accountName,
@@ -399,6 +407,12 @@ func SelectAccountHandler(w http.ResponseWriter, r *http.Request) {
 		Secure:   r.TLS != nil,
 		SameSite: http.SameSiteLaxMode,
 	}
+
+	log.Printf("Selecionando conta: '%s', Cookie definido: '%s', É padrão: %v",
+		accountName,
+		accountName,
+		accountName == "" || strings.Contains(strings.ToLower(accountName), "conta padr") || accountName == "Conta Padrão")
+
 	http.SetCookie(w, selectedAccountCookie)
 
 	// Clear Azure client cache to use new credentials
@@ -582,6 +596,17 @@ func clearSession(w http.ResponseWriter) {
 		HttpOnly: true,
 	}
 	http.SetCookie(w, tokenCookie)
+	// Limpar o cookie de conta selecionada
+	selectedAccountCookie := &http.Cookie{
+		Name:     "selected_account",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+	}
+	http.SetCookie(w, selectedAccountCookie)
+
+	log.Printf("Sessão encerrada, cookies limpos")
 }
 
 // AccessDeniedPageHandler exibe a página de acesso negado com uma mensagem personalizada

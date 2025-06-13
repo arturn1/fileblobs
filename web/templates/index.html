@@ -24,7 +24,10 @@
           {{ end }} {{ end }}{{ end }}
         </div>
       </div>
-      <div id="actionButtons" style="display: flex;align-items: center;margin: inherit;">
+      <div
+        id="actionButtons"
+        style="display: flex; align-items: center; margin: inherit"
+      >
         <a href="/storage-accounts" class="btn btn-outline-primary btn-sm me-2"
           >Storage</a
         >
@@ -44,7 +47,8 @@
         </form>
       </div>
 
-      {{ if or .Prefix (not .IsDefaultAccount) }}
+      <!-- Esconder botões apenas quando estiver na raiz do projeto padrão -->
+      {{ if not .IsDefaultAccount }}
       <div id="folderActionButtons" class="action-buttons">
         <button
           type="button"
