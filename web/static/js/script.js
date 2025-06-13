@@ -1,8 +1,6 @@
 let isDownloadMode = false;
 
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("Página carregada - verificando estados");
-  
   const searchInput = document.querySelector("#searchInput");
 
   if (searchInput) {
@@ -18,15 +16,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // Verificar se estamos na raiz do projeto padrão
   const urlParams = new URLSearchParams(window.location.search);
   const prefix = urlParams.get("prefix") || "";
-  console.log("Verificação JavaScript - Prefix:", prefix);
   
   // Checar se temos folderActionButtons (pode não existir na raiz da conta padrão)
   const folderActionButtons = document.getElementById("folderActionButtons");
-  if (folderActionButtons) {
-    console.log("Botões de ação disponíveis");
-  } else {
-    console.log("Botões de ação não disponíveis - possivelmente na raiz da conta padrão");
-  }
 });
 
 function showDownloadConfirm() {

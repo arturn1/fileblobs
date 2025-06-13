@@ -29,9 +29,17 @@ func UploadBlob(path string, data []byte) error {
 	if err != nil {
 		return fmt.Errorf("erro criando service client: %w", err)
 	}
-
 	containerClient := serviceClient.NewContainerClient(containerName)
-	blobClient := containerClient.NewBlockBlobClient(path)
+	// Normalizar o caminho do blob removendo barras iniciais
+	normalizedPath := path
+	for len(normalizedPath) > 0 && normalizedPath[0] == '/' {
+		normalizedPath = normalizedPath[1:]
+	}
+
+	// Substituir barra invertida por barra normal (importante para Windows)
+	normalizedPath = filepath.ToSlash(normalizedPath)
+
+	blobClient := containerClient.NewBlockBlobClient(normalizedPath)
 
 	_, err = blobClient.UploadBuffer(context.Background(), data, nil)
 	if err != nil {
@@ -60,12 +68,21 @@ func UploadMultipleBlobs(prefix string, files map[string][]byte) error {
 	if err != nil {
 		return fmt.Errorf("erro criando service client: %w", err)
 	}
-
 	containerClient := serviceClient.NewContainerClient(containerName)
 
 	for filename, content := range files {
 		path := filepath.Join(prefix, filename)
-		blobClient := containerClient.NewBlockBlobClient(path)
+
+		// Normalizar o caminho do blob removendo barras iniciais
+		normalizedPath := path
+		for len(normalizedPath) > 0 && normalizedPath[0] == '/' {
+			normalizedPath = normalizedPath[1:]
+		}
+
+		// Substituir barra invertida por barra normal (importante para Windows)
+		normalizedPath = filepath.ToSlash(normalizedPath)
+
+		blobClient := containerClient.NewBlockBlobClient(normalizedPath)
 
 		_, err := blobClient.UploadBuffer(context.Background(), content, nil)
 		if err != nil {

@@ -15,9 +15,14 @@ func ListFoldersAndFiles(prefix string) (folders []string, files []string, err e
 	account := os.Getenv("AZURE_STORAGE_ACCOUNT_NAME")
 	key := os.Getenv("AZURE_STORAGE_ACCOUNT_KEY")
 	containerName := os.Getenv("AZURE_STORAGE_CONTAINER")
-
 	if account == "" || key == "" || containerName == "" {
 		return nil, nil, fmt.Errorf("variáveis de ambiente ausentes")
+	}
+
+	// Normalizar o prefixo removendo barras iniciais
+	normalizedPrefix := prefix
+	for len(normalizedPrefix) > 0 && normalizedPrefix[0] == '/' {
+		normalizedPrefix = normalizedPrefix[1:]
 	}
 
 	cred, err := azblob.NewSharedKeyCredential(account, key)
@@ -30,11 +35,13 @@ func ListFoldersAndFiles(prefix string) (folders []string, files []string, err e
 	if err != nil {
 		return nil, nil, fmt.Errorf("erro criando service client: %w", err)
 	}
-
 	containerClient := serviceClient.NewContainerClient(containerName)
 
+	// Converter barras invertidas em barras normais (importante para Windows)
+	normalizedPrefix = strings.ReplaceAll(normalizedPrefix, "\\", "/")
+
 	pager := containerClient.NewListBlobsHierarchyPager("/", &container.ListBlobsHierarchyOptions{
-		Prefix: &prefix,
+		Prefix: &normalizedPrefix,
 	})
 
 	for pager.More() {

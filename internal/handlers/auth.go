@@ -408,10 +408,7 @@ func SelectAccountHandler(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 	}
 
-	log.Printf("Selecionando conta: '%s', Cookie definido: '%s', É padrão: %v",
-		accountName,
-		accountName,
-		accountName == "" || strings.Contains(strings.ToLower(accountName), "conta padr") || accountName == "Conta Padrão")
+	log.Printf("Selecionando conta: '%s'", accountName)
 
 	http.SetCookie(w, selectedAccountCookie)
 

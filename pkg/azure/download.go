@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"path/filepath"
 )
 
 func DownloadBlob(blobPath string) ([]byte, error) {
@@ -11,8 +12,17 @@ func DownloadBlob(blobPath string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	// Normalizar o caminho do blob removendo barras iniciais
+	// para evitar caminhos como "container//path"
+	normalizedPath := blobPath
+	for len(normalizedPath) > 0 && normalizedPath[0] == '/' {
+		normalizedPath = normalizedPath[1:]
+	}
 
-	blobClient := containerClient.NewBlobClient(blobPath)
+	// Substituir barra invertida por barra normal (importante para Windows)
+	normalizedPath = filepath.ToSlash(normalizedPath)
+
+	blobClient := containerClient.NewBlobClient(normalizedPath)
 
 	resp, err := blobClient.DownloadStream(context.Background(), nil)
 	if err != nil {

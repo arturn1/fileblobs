@@ -108,6 +108,7 @@ func ListFilesHandler(w http.ResponseWriter, r *http.Request) {
 		folders = filterByQuery(folders, query)
 		files = filterByQuery(files, query)
 	}
+
 	// Verificar se é a conta padrão - verificando várias formas do nome para ser mais robusto
 	isDefaultAccount := selectedAccountName == "" ||
 		strings.Contains(strings.ToLower(selectedAccountName), "conta padr") ||
@@ -115,13 +116,6 @@ func ListFilesHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Verificamos se estamos na raiz da conta padrão
 	isRootOfDefaultAccount := isDefaultAccount && prefix == ""
-
-	// Determinar se devemos mostrar os botões de ação
-	showActionButtons := !isRootOfDefaultAccount // Inverso da condição para esconder
-
-	// Log para debug detalhado com mais informações
-	log.Printf("Verificação de botões: Account='%s', IsDefault=%v, Prefix='%s', IsRootOfDefault=%v, ShowButtons=%v",
-		selectedAccountName, isDefaultAccount, prefix, isRootOfDefaultAccount, showActionButtons)
 
 	// Garantir que o cookie esteja definido como vazio para a conta padrão
 	// Isso ajuda a evitar inconsistências no estado
@@ -135,9 +129,6 @@ func ListFilesHandler(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	// Log para debug
-	log.Printf("Selected Account: '%s', Show Buttons: %v, Prefix: '%s', Is Default: %v, Root of Default: %v",
-		selectedAccountName, showActionButtons, prefix, isDefaultAccount, isRootOfDefaultAccount)
 	data := PageData{
 		Folders:          folders,
 		Files:            files,
@@ -146,11 +137,6 @@ func ListFilesHandler(w http.ResponseWriter, r *http.Request) {
 		DownloadMode:     downloadMode,
 		IsDefaultAccount: isRootOfDefaultAccount, // True quando estamos na raiz da conta padrão (onde queremos esconder botões)
 	}
-
-	// Log extra para debug na renderização do template
-	log.Printf("Renderizando template com IsDefaultAccount=%v (botões %s)",
-		isRootOfDefaultAccount,
-		map[bool]string{true: "escondidos", false: "visíveis"}[isRootOfDefaultAccount])
 
 	tmpl.Execute(w, data)
 }
