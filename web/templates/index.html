@@ -9,25 +9,40 @@
     />
     <link rel="stylesheet" href="/static/css/style.css" />
     <script src="/static/js/script.js" defer></script>
-  </head>
-  <body>
-    <h1>ARQUIVOS</h1>
-
-    <div class="breadcrumb">
-      <div style="flex-grow: 1">
-        <a href="/">Fileblobs</a>
-        {{ if .Prefix }} {{ $parts := splitPrefix .Prefix }} {{ range $i, $part
-        := $parts }} &nbsp;&gt;&nbsp; {{ if eq (add $i) (len $parts) }}
-        <span class="current">{{ $part }}</span>
-        {{ else }}
-        <a href="/?prefix={{ joinPrefix $parts $i }}">{{ $part }}</a>
-        {{ end }} {{ end }} {{ end }}
+  </head>  <body>
+    <div class="breadcrumb">      <div style="flex-grow: 1">
+        <h1 style="margin:0; margin-bottom: 5px; color: #1d4ed8;">ARQUIVOS</h1>
+        <div>
+          <a href="/">Fileblobs</a>
+          {{ if .Prefix }} {{ $parts := splitPrefix .Prefix }} {{ range $i, $part
+          := $parts }} &nbsp;&gt;&nbsp; {{ if eq (add $i) (len $parts) }}
+          <span class="current">{{ $part }}</span>
+          {{ else }}
+          <a href="/?prefix={{ joinPrefix $parts $i }}">{{ $part }}</a>
+          {{ end }} {{ end }}{{ end }}
+        </div>
       </div>
+      <div id="actionButtons" style="display: flex; align-items: center;">
+        <a href="/storage-accounts" class="btn btn-outline-primary btn-sm me-2">Storage</a>
+        <a href="/logout" class="btn btn-outline-danger btn-sm">Sair</a>      </div></div>
+      
+    <div class="search-action-bar">
+      <div class="search-container">
+        <form method="GET" onsubmit="return false;">
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Buscar..."
+            value="{{.Query}}"
+          />
+        </form>
+      </div>
+      
       {{ if .Prefix }}
-      <div id="actionButtons">
+      <div id="folderActionButtons" class="action-buttons">
         <button
           type="button"
-          class="btn btn-primary"
+          class="btn btn-primary btn-sm"
           data-bs-toggle="modal"
           data-bs-target="#uploadModal"
         >
@@ -37,7 +52,7 @@
           Download
         </button>
       </div>
-      <div id="confirmButtons" style="display: none">
+      <div id="confirmButtons" class="action-buttons" style="display: none">
         <button class="clean-btn cancel" onclick="cancelDownload()">
           Cancelar
         </button>
@@ -48,25 +63,7 @@
           Baixar
         </button>
       </div>
-      {{ else }}
-      <div id="actionButtons">
-        <a href="/storage-accounts" class="btn btn-outline-primary btn-sm me-2"
-          >Contas</a
-        >
-        <a href="/logout" class="btn btn-outline-danger btn-sm">Sair</a>
-      </div>
       {{ end }}
-    </div>
-
-    <div class="search">
-      <form method="GET" onsubmit="return false;">
-        <input
-          type="text"
-          id="searchInput"
-          placeholder="Buscar..."
-          value="{{.Query}}"
-        />
-      </form>
     </div>
 
     {{ if .Folders }}

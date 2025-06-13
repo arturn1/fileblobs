@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
 function showDownloadConfirm() {
   isDownloadMode = true;
 
-  document.getElementById("actionButtons").style.display = "none";
+  document.getElementById("folderActionButtons").style.display = "none";
   document.getElementById("confirmButtons").style.display = "flex";
 
   document.querySelectorAll(".file").forEach(el => {
@@ -33,7 +33,7 @@ function cancelDownload() {
   isDownloadMode = false;
 
   document.getElementById("confirmButtons").style.display = "none";
-  document.getElementById("actionButtons").style.display = "flex";
+  document.getElementById("folderActionButtons").style.display = "flex";
 
   document.querySelectorAll(".file").forEach(el => {
     el.classList.remove("show-checkboxes", "selected");
