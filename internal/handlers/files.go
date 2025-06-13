@@ -10,11 +10,12 @@ import (
 )
 
 type PageData struct {
-	Folders      []string
-	Files        []string
-	Prefix       string
-	Query        string
-	DownloadMode bool
+	Folders          []string
+	Files            []string
+	Prefix           string
+	Query            string
+	DownloadMode     bool
+	IsDefaultAccount bool
 }
 
 var tmpl = template.Must(template.New("index.html").Funcs(template.FuncMap{
@@ -91,18 +92,27 @@ func ListFilesHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/storage-accounts", http.StatusSeeOther)
 		return
 	}
-
 	if query != "" {
 		folders = filterByQuery(folders, query)
 		files = filterByQuery(files, query)
 	}
 
+	// Verificar se estamos usando a conta padrão
+	selectedAccountName := ""
+	selectedAccountCookie, err := r.Cookie("selected_account")
+	if err == nil && selectedAccountCookie.Value != "" {
+		selectedAccountName = selectedAccountCookie.Value
+	}
+
+	isDefaultAccount := selectedAccountName == "" || selectedAccountName == "Conta Padrão"
+
 	data := PageData{
-		Folders:      folders,
-		Files:        files,
-		Prefix:       prefix,
-		Query:        query,
-		DownloadMode: downloadMode,
+		Folders:          folders,
+		Files:            files,
+		Prefix:           prefix,
+		Query:            query,
+		DownloadMode:     downloadMode,
+		IsDefaultAccount: isDefaultAccount,
 	}
 
 	tmpl.Execute(w, data)

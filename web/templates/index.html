@@ -9,23 +9,29 @@
     />
     <link rel="stylesheet" href="/static/css/style.css" />
     <script src="/static/js/script.js" defer></script>
-  </head>  <body>
-    <div class="breadcrumb">      <div style="flex-grow: 1">
-        <h1 style="margin:0; margin-bottom: 5px; color: #1d4ed8;">ARQUIVOS</h1>
+  </head>
+  <body>
+    <div class="breadcrumb">
+      <div style="flex-grow: 1">
+        <h1 style="margin: 0; margin-bottom: 5px; color: #1d4ed8">ARQUIVOS</h1>
         <div>
           <a href="/">Fileblobs</a>
-          {{ if .Prefix }} {{ $parts := splitPrefix .Prefix }} {{ range $i, $part
-          := $parts }} &nbsp;&gt;&nbsp; {{ if eq (add $i) (len $parts) }}
+          {{ if .Prefix }} {{ $parts := splitPrefix .Prefix }} {{ range $i,
+          $part := $parts }} &nbsp;&gt;&nbsp; {{ if eq (add $i) (len $parts) }}
           <span class="current">{{ $part }}</span>
           {{ else }}
           <a href="/?prefix={{ joinPrefix $parts $i }}">{{ $part }}</a>
           {{ end }} {{ end }}{{ end }}
         </div>
       </div>
-      <div id="actionButtons" style="display: flex; align-items: center;">
-        <a href="/storage-accounts" class="btn btn-outline-primary btn-sm me-2">Storage</a>
-        <a href="/logout" class="btn btn-outline-danger btn-sm">Sair</a>      </div></div>
-      
+      <div id="actionButtons" style="display: flex;align-items: center;margin: inherit;">
+        <a href="/storage-accounts" class="btn btn-outline-primary btn-sm me-2"
+          >Storage</a
+        >
+        <a href="/logout" class="btn btn-outline-danger btn-sm">Sair</a>
+      </div>
+    </div>
+
     <div class="search-action-bar">
       <div class="search-container">
         <form method="GET" onsubmit="return false;">
@@ -37,8 +43,8 @@
           />
         </form>
       </div>
-      
-      {{ if .Prefix }}
+
+      {{ if or .Prefix (not .IsDefaultAccount) }}
       <div id="folderActionButtons" class="action-buttons">
         <button
           type="button"

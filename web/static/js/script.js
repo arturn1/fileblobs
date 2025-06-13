@@ -12,13 +12,27 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
   }
+  
+  // Verificar se estamos na raiz do projeto padrão
+  const urlParams = new URLSearchParams(window.location.search);
+  const prefix = urlParams.get("prefix") || "";
+  
+  // Checar se temos folderActionButtons (pode não existir em algumas páginas)
+  const folderActionButtons = document.getElementById("folderActionButtons");
+  if (folderActionButtons) {
+    // Botões de ação já são visíveis por padrão após a remoção da condição no template
+  }
 });
 
 function showDownloadConfirm() {
   isDownloadMode = true;
 
-  document.getElementById("folderActionButtons").style.display = "none";
-  document.getElementById("confirmButtons").style.display = "flex";
+  // Verificar se os elementos existem antes de manipulá-los
+  const folderActionButtons = document.getElementById("folderActionButtons");
+  const confirmButtons = document.getElementById("confirmButtons");
+  
+  if (folderActionButtons) folderActionButtons.style.display = "none";
+  if (confirmButtons) confirmButtons.style.display = "flex";
 
   document.querySelectorAll(".file").forEach(el => {
     el.classList.add("show-checkboxes");
@@ -32,8 +46,12 @@ function showDownloadConfirm() {
 function cancelDownload() {
   isDownloadMode = false;
 
-  document.getElementById("confirmButtons").style.display = "none";
-  document.getElementById("folderActionButtons").style.display = "flex";
+  // Verificar se os elementos existem antes de manipulá-los
+  const folderActionButtons = document.getElementById("folderActionButtons");
+  const confirmButtons = document.getElementById("confirmButtons");
+  
+  if (confirmButtons) confirmButtons.style.display = "none";
+  if (folderActionButtons) folderActionButtons.style.display = "flex";
 
   document.querySelectorAll(".file").forEach(el => {
     el.classList.remove("show-checkboxes", "selected");
