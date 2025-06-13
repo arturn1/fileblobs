@@ -1,12 +1,12 @@
-FROM golang:1.21
+FROM golang:1.24
 
 WORKDIR /app
 
 COPY go.mod go.sum ./
-RUN go mod download
+RUN go mod tidy && go mod download
 
-COPY . .
+COPY . .  
 
-RUN go build -o app
+RUN go build -o app ./cmd 
 
 CMD ["./app"]
