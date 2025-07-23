@@ -48,6 +48,7 @@ func main() {
 	mux.HandleFunc("/download-folder", handlers.AuthMiddleware(handlers.DownloadFolderHandler))
 	mux.HandleFunc("/download-multiple", handlers.AuthMiddleware(handlers.DownloadMultipleHandler))
 	mux.HandleFunc("/upload", handlers.AuthMiddleware(handlers.UploadHandler))
+	mux.HandleFunc("/download-zip", handlers.AuthMiddleware(handlers.DownloadZipHandler))
 
 	// Static files
 	mux.Handle("/static/", http.StripPrefix("/static/", handlers.NewCustomFileServer(http.Dir("web/static"))))

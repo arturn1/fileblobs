@@ -59,6 +59,7 @@
                 {{end}}
               </div>
               <div class="d-flex justify-content-between mt-4">
+
                 <a
                   href="#"
                   onclick="clearStorageAndLogout()"
@@ -74,6 +75,29 @@
               </div>
             </div>
           </div>
+          <div class="card shadow mt-4">
+              <div class="card-header bg-success text-white">
+                <h4 class="mb-0">BlobQuery</h4>
+              </div>
+              <div class="card-body">
+                <form id="downloadZipForm" class="mb-3">
+                  <div class="mb-3">
+                    <label for="connectionString" class="form-label">Connection String</label>
+                    <input type="text" class="form-control" id="connectionString" name="connectionString" placeholder="Connection String" required>
+                  </div>
+                  <div class="mb-3">
+                    <label for="containerName" class="form-label">Container Name</label>
+                    <input type="text" class="form-control" id="containerName" name="containerName" placeholder="Container Name" required>
+                  </div>
+                  <div class="mb-3">
+                    <label for="folderPath" class="form-label">Folder Path</label>
+                    <input type="text" class="form-control" id="folderPath" name="folderPath" placeholder="Folder Path" required>
+                  </div>
+                  <button type="submit" class="btn btn-success">Baixar ZIP</button>
+                </form>
+                <div id="downloadZipMsg" class="alert alert-warning d-none"></div>
+              </div>
+            </div>
         </div>
       </div>
     </div>
@@ -96,5 +120,54 @@
         }
       }
     </script>
+    <!-- ...existing code... -->
+    <script>
+    document.getElementById('downloadZipForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const form = e.target;
+      const msgDiv = document.getElementById('downloadZipMsg');
+      msgDiv.classList.add('d-none');
+      msgDiv.textContent = '';
+
+      const data = {
+        connectionString: form.connectionString.value,
+        containerName: form.containerName.value,
+        folderPath: form.folderPath.value
+      };
+
+      try {
+        const response = await fetch('/download-zip', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        if (response.status === 404) {
+          msgDiv.textContent = 'Nenhum arquivo encontrado para os parâmetros informados.';
+          msgDiv.classList.remove('d-none');
+          return;
+        }
+        if (!response.ok) {
+          msgDiv.textContent = 'Erro ao baixar ZIP.';
+          msgDiv.classList.remove('d-none');
+          return;
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'download.zip';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } catch (err) {
+        msgDiv.textContent = 'Erro ao baixar ZIP.';
+        msgDiv.classList.remove('d-none');
+      }
+    });
+    </script>
+    <!-- ...existing code... -->
   </body>
 </html>
